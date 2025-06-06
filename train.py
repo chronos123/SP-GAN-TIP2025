@@ -29,8 +29,6 @@ from libs.backup import backup_files
 
 from latent_sampler import LatentSampler
 from utils import *
-from gpueater.gpu_eater import occupy_gpus_mem
-
 
 
 SET_TEST_ID = True # Making testing-time randomized noise inputs from StyleGAN2 fixed
@@ -52,7 +50,6 @@ def train(args, loaders, latent_sampler, generator, discriminator,
           g_optim, d_optim, g_ema, inception, device, lr_sch_g=None, lr_sch_d=None):
     global backup_files
     # occupy_gpus_mem(free=1000)
-    # 将GPU显存占满
     """
     Setup env
     """
@@ -150,9 +147,6 @@ def train(args, loaders, latent_sampler, generator, discriminator,
         vis_local_latent, vis_local_latent_ext_list = unify_local_latent_ext(vis_local_latent, vis_local_latent_ext_list)
 
 
-    """
-    Create sample generation function for FID calculation, 只生成8个数据进行测试
-    """
     def generation_fn(n_batches):
         for i in range(n_batches):
             global_latent = latent_sampler.sample_global_latent(config.train_params.batch_size, device)
@@ -174,7 +168,6 @@ def train(args, loaders, latent_sampler, generator, discriminator,
                                           is_fid_eval=True,
                                           disable_dual_latents=True).detach() 
                 patch = gen_data["gen"]
-                # 同样使用Infinity generator进行生成
                 full_size = config.train_params.full_size
                 gen_size = patch.shape[-1]
                 # EXT2 generation resolution should be equal or larger than the full image size
@@ -183,7 +176,6 @@ def train(args, loaders, latent_sampler, generator, discriminator,
                     patch = patch[:, :, pad:pad+full_size, pad:pad+full_size]
                 gen_data_list.append(patch)
             yield torch.cat(gen_data_list, 0)
-            # 生成197大小的块计算FID, 计算8个 (以2倍的大小对local_latent进行采样)
 
     """
     Check if the dimension is correct
@@ -464,7 +456,6 @@ def train(args, loaders, latent_sampler, generator, discriminator,
                         writer.add_histogram(k, distrs[k].numpy(), iter_, bins=1000)
                     except Exception as e:
                         print(" [!] Error happens on distr {}".format(k))
-                        # TODO: 完成报错后发邮件的代码
 
                 log_memory(config, writer, iter_)
 
@@ -647,16 +638,12 @@ def train(args, loaders, latent_sampler, generator, discriminator,
                 }, os.path.join(ckpt_root, "inter_{}.pth.tar".format(str(iter_).zfill(8))))
                 rm_outdated_ckpt(pattern=os.path.join(ckpt_root, "inter_*.pth.tar"), max_to_keep=2)
 
-
-            """
-            Vanilla FID (patch), 计算的 FID, 计算9000张生成的小块的FID (通过 mean 和 cov 计算)
-            """
             if config.test_params.calc_fid:
                 if ((iter_ % config.log_params.eval_tick == 0) and (iter_ > config.var.start_iter)) or args.debug: 
                     stats_key = "{}-{}".format(config.data_params.dataset, config.train_params.patch_size)
                     # FID statistics can be different for different PyTorch version, not sure about cuda
                     stats_key += f"_PT{torch.__version__}_cu{torch.version.cuda}"
-                    g_ema.eval() # 首先得到g_ema - infinity_generator
+                    g_ema.eval() 
                     if (iter_ == 0) and (not args.debug): 
                         # Create graph only, not really calculating
                         fid = eval_fid(loaders["fid-train"], generation_fn, inception, stats_key, "patch", device, config, no_write_cache=args.debug, create_graph_only=True)
@@ -739,7 +726,6 @@ def train(args, loaders, latent_sampler, generator, discriminator,
             writer = SummaryWriter(os.path.join("logs", config.var.exp_name))
         
         gc.collect()
-        # 及时清理内存
 
     print("Done!")
     exit()
@@ -811,7 +797,6 @@ if __name__ == "__main__":
         generator     = import_func(config.train_params.g_arch)(config=config)
         g_ema         = import_func(config.train_params.g_arch)(config=config)
         discriminator = import_func(config.train_params.d_arch)(config=config)
-        # g进行训练, g_ema进行测试, 两者的学习率不同
         """
         FID setup
         """
@@ -914,7 +899,6 @@ if __name__ == "__main__":
             load_state_dict_baseline(g_ema, ckpt["g_ema"])
         else:
             if args.ckpt_dir != "":
-                # NOTE: 只对V3modified适用
                 assert args.config == "configs/model/g_all/mp360-v2-spgan-g_all_v3_modified.yaml" \
                     or args.config == "configs/model/g_all/mp360-v2-spgan-g_all_v2_pretrained.yaml" \
                     or args.config == "configs/model/g_all/mp360-v2-spgan-g_all_v4_modified.yaml" \
@@ -935,8 +919,6 @@ if __name__ == "__main__":
                 if args.config != "configs/model/all_change/mp360-v2-spall_g_all_v3_pg.yaml": 
                     safe_load_state_dict(discriminator, ckpt["d"])
 
-                # safe_load_state_dict(g_optim, ckpt["g_optim"])
-                # safe_load_state_dict(d_optim, ckpt["d_optim"])
             else:
                 ckpt_dir = os.path.join(config.var.log_dir, config.var.exp_name, "ckpt")
                 ckpts = sorted(glob(os.path.join(ckpt_dir, "inter_*.pth.tar")))
@@ -950,7 +932,6 @@ if __name__ == "__main__":
                     config.var.best_fid = ckpt["best_fid"]
                     if "best_ext2_fid" in ckpt.keys():
                         config.var.best_ext2_fid = ckpt["best_ext2_fid"]
-                        # NOTE: restore EXT2FID
                     else:
                         config.var.best_ext2_fid = 500
                     if "mean_path_lengths" in ckpt:

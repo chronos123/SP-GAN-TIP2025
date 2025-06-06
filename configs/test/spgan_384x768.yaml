@@ -1,0 +1,11 @@
+task_manager: "test_managers.close_loop_infinite_generation.InfiniteGenerationManagerPatchCoordsCloseLoop"
+interactive: False
+seed: 9000
+
+# task specific configs
+height: 384
+width: 768
+batch_size: 16
+num_gen: 10000
+lowres_height: 128
+
