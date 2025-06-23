@@ -2,6 +2,11 @@
 
 This is the official repository for the papar 'Spherical Patch Generative Adversarial Net for Unconditional Panoramic Image Generation' in IEEE Transactions on Image Processing (TIP) 2025.
 
+- Framework and Network architecture.
+![Framework](assets/MotivationV22.png)
+![Network](<assets/Network - v13 check.png>)
+
+
 ## 1. Environmets
 ```sh
 conda env create -f configs/env/environment.yml
@@ -10,18 +15,18 @@ conda env create -f configs/env/environment.yml
 ## 2. Data Prepare
 Download the matterport3D dataset from "https://niessner.github.io/Matterport/"
 
-Run the following command to get panoramic images for training
+Run the following command to get panoramic images for training.
 ```sh
 python gen_pano_dataset.py
 ```
 
-Run the following command to construct the lmdb database for training and testing
+Run the following command to construct the lmdb database for training and testing.
 
 ## 3. Pre-trained Weights
 
 Get the pretrained weights from "https://drive.google.com/file/d/1pNZbIyBcSrfQZv3Hr_whzkGOAp72S-fY/view?usp=drive_link"
 
-Download the 'SP-GAN.ckpt' and put it at 'weights/SP-GAN.ckpt'
+Download the 'SP-GAN.ckpt' and put it at 'weights/SP-GAN.ckpt'.
 
 ## 4. Training
 
