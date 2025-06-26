@@ -1,7 +1,7 @@
 LMDB_ROOTS = {
     # Definition:
     #     str(socket.gethostname()): "<path/to/lmdb/to/be/placed>"
-    "unspecified": None
+    "unspecified": []
 }
 
 REMOTE_CKPT_URL = None
