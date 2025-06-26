@@ -9,18 +9,6 @@ from .grid_sample_grad_fix import grid_sample
 from .grid_sample_ops import grid_sample_github
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s %(filename)s %(levelname)s %(message)s',
-    datefmt='%a %d %b %Y %H:%M:%S',
-    filename='logs/check.log',
-    filemode='a+'
-)
-
-
-__logger__ = logging.getLogger(__name__)
-
-
 class GridGenerator:
     def __init__(self, height: int, width: int, kernel_size, stride=1):
         if isinstance(height, torch.Tensor):

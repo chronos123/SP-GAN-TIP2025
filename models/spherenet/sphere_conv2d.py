@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch import nn
 import math
 
-from .GridGenerator import (
+from .grid_generator import (
     GridGenerator, 
     GridSampler,
     IncreIntervalGridGenerator,
