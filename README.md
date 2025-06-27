@@ -2,6 +2,8 @@
 
 This is the official repository for the papar 'Spherical Patch Generative Adversarial Net for Unconditional Panoramic Image Generation' in IEEE Transactions on Image Processing (TIP) 2025.
 
+- [Paper](https://ieeexplore.ieee.org/document/11037336)
+
 - Framework and Network architecture.
 ![Framework](assets/MotivationV22.png)
 ![Network](<assets/Network - v13 check.png>)
